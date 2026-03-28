@@ -6,13 +6,13 @@
 // Maximum limits
 #define MAX_STUDENTS 100
 #define MAX_SUBJECTS 5
-#define NAME_LEN 50
-#define ROLL_LEN 15
+#define NAME 50
+#define ROLL 15
 
 // Structure for a student
 struct Student {
-    char roll[ROLL_LEN];
-    char name[NAME_LEN];
+    char roll[ROLL];
+    char name[NAME];
     int year;
     int marks[MAX_SUBJECTS];
     int subject_count;
@@ -63,7 +63,7 @@ void read_string(char *buffer, int size);
 
 // Utility functions
 void clear_screen() {
-    printf("\033[2J\033[H");
+    system("cls");
 }
 
 void pause_screen() {
@@ -149,7 +149,7 @@ void add_student() {
     struct Student s;
 
     printf("Enter Roll Number: ");
-    read_string(s.roll, ROLL_LEN);
+    read_string(s.roll, ROLL);
 
     // Check for duplicate
     for (int i = 0; i < student_count; i++) {
@@ -213,9 +213,9 @@ void display_students() {
 
 // Search for a student
 void search_student() {
-    char roll[ROLL_LEN];
+    char roll[ROLL];
     printf("Enter Roll Number: ");
-    read_string(roll, ROLL_LEN);
+    read_string(roll, ROLL);
 
     int found = 0;
     for (int i = 0; i < student_count; i++) {
@@ -243,9 +243,9 @@ void search_student() {
 
 // Add or update marks
 void add_marks() {
-    char roll[ROLL_LEN];
+    char roll[ROLL];
     printf("Enter Roll Number: ");
-    read_string(roll, ROLL_LEN);
+    read_string(roll, ROLL);
 
     int index = -1;
     for (int i = 0; i < student_count; i++) {
@@ -286,9 +286,9 @@ void add_marks() {
 
 // Display student result
 void display_result() {
-    char roll[ROLL_LEN];
+    char roll[ROLL];
     printf("Enter Roll Number: ");
-    read_string(roll, ROLL_LEN);
+    read_string(roll, ROLL);
 
     int index = -1;
     for (int i = 0; i < student_count; i++) {
@@ -345,8 +345,8 @@ void show_ranking() {
 
     // Create array of students with percentage
     struct Rank {
-        char name[NAME_LEN];
-        char roll[ROLL_LEN];
+        char name[NAME];
+        char roll[ROLL];
         float percentage;
     } ranks[MAX_STUDENTS];
 
