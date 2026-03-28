@@ -1,0 +1,608 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+// Maximum limits
+#define MAX_STUDENTS 100
+#define MAX_SUBJECTS 5
+#define NAME_LEN 50
+#define ROLL_LEN 15
+
+// Structure for a student
+struct Student {
+    char roll[ROLL_LEN];
+    char name[NAME_LEN];
+    int year;
+    int marks[MAX_SUBJECTS];
+    int subject_count;
+};
+
+// Structure for user login
+struct User {
+    char username[30];
+    char password[30];
+    char role[15];  // admin, teacher, student
+};
+
+// Global arrays
+struct Student students[MAX_STUDENTS];
+struct User users[MAX_STUDENTS + 5];
+int student_count = 0;
+int user_count = 0;
+
+// Current logged in user
+struct User current_user;
+int logged_in = 0;
+
+// File names
+const char *STUDENT_FILE = "students.dat";
+const char *USER_FILE = "users.dat";
+
+// Function prototypes
+void init_data();
+void save_students();
+void load_students();
+void save_users();
+void load_users();
+void add_student();
+void display_students();
+void search_student();
+void add_marks();
+void display_result();
+void show_ranking();
+void login();
+void admin_menu();
+void teacher_menu();
+void student_menu();
+void clear_screen();
+void pause_screen();
+void print_header(const char *title);
+int read_int();
+void read_string(char *buffer, int size);
+
+// Utility functions
+void clear_screen() {
+    printf("\033[2J\033[H");
+}
+
+void pause_screen() {
+    printf("\nPress Enter to continue...");
+    getchar();
+}
+
+void print_header(const char *title) {
+    printf("\n========================================\n");
+    printf("  %s\n", title);
+    printf("========================================\n\n");
+}
+
+int read_int() {
+    char buffer[20];
+    fgets(buffer, sizeof(buffer), stdin);
+    return atoi(buffer);
+}
+
+void read_string(char *buffer, int size) {
+    fgets(buffer, size, stdin);
+    buffer[strcspn(buffer, "\n")] = '\0';
+}
+
+// Save students to binary file
+void save_students() {
+    FILE *fp = fopen(STUDENT_FILE, "wb");
+    if (fp == NULL) {
+        printf("Error saving students!\n");
+        return;
+    }
+
+    fwrite(&student_count, sizeof(int), 1, fp);
+    fwrite(students, sizeof(struct Student), student_count, fp);
+    fclose(fp);
+
+    printf("Students saved successfully!\n");
+}
+
+// Load students from binary file
+void load_students() {
+    FILE *fp = fopen(STUDENT_FILE, "rb");
+    if (fp == NULL) {
+        student_count = 0;
+        return;
+    }
+
+    fread(&student_count, sizeof(int), 1, fp);
+    fread(students, sizeof(struct Student), student_count, fp);
+    fclose(fp);
+}
+
+// Save users to binary file
+void save_users() {
+    FILE *fp = fopen(USER_FILE, "wb");
+    if (fp == NULL) return;
+
+    fwrite(&user_count, sizeof(int), 1, fp);
+    fwrite(users, sizeof(struct User), user_count, fp);
+    fclose(fp);
+}
+
+// Load users from binary file
+void load_users() {
+    FILE *fp = fopen(USER_FILE, "rb");
+    if (fp == NULL) {
+        user_count = 0;
+        return;
+    }
+
+    fread(&user_count, sizeof(int), 1, fp);
+    fread(users, sizeof(struct User), user_count, fp);
+    fclose(fp);
+}
+
+// Add a new student
+void add_student() {
+    if (student_count >= MAX_STUDENTS) {
+        printf("Maximum students limit reached!\n");
+        return;
+    }
+
+    struct Student s;
+
+    printf("Enter Roll Number: ");
+    read_string(s.roll, ROLL_LEN);
+
+    // Check for duplicate
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, s.roll) == 0) {
+            printf("Student already exists!\n");
+            return;
+        }
+    }
+
+    printf("Enter Name: ");
+    read_string(s.name, NAME_LEN);
+
+    printf("Enter Year (1-4): ");
+    s.year = read_int();
+
+    if (s.year < 1 || s.year > 4) {
+        printf("Invalid year!\n");
+        return;
+    }
+
+    s.subject_count = 0;
+    for (int i = 0; i < MAX_SUBJECTS; i++) {
+        s.marks[i] = 0;
+    }
+
+    students[student_count] = s;
+    student_count++;
+    save_students();
+
+    // Add user account for student
+    struct User u;
+    strcpy(u.username, s.roll);
+    strcpy(u.password, s.roll);
+    strcpy(u.role, "student");
+
+    users[user_count] = u;
+    user_count++;
+    save_users();
+
+    printf("Student added successfully!\n");
+}
+
+// Display all students
+void display_students() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    print_header("STUDENT LIST");
+    printf("%-15s %-30s %-10s\n", "Roll No", "Name", "Year");
+    printf("----------------------------------------\n");
+
+    for (int i = 0; i < student_count; i++) {
+        printf("%-15s %-30s %-10d\n",
+               students[i].roll,
+               students[i].name,
+               students[i].year);
+    }
+}
+
+// Search for a student
+void search_student() {
+    char roll[ROLL_LEN];
+    printf("Enter Roll Number: ");
+    read_string(roll, ROLL_LEN);
+
+    int found = 0;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            found = 1;
+            printf("\nStudent Details:\n");
+            printf("Roll No: %s\n", students[i].roll);
+            printf("Name: %s\n", students[i].name);
+            printf("Year: %d\n", students[i].year);
+
+            if (students[i].subject_count > 0) {
+                printf("\nMarks:\n");
+                for (int j = 0; j < students[i].subject_count; j++) {
+                    printf("Subject %d: %d\n", j + 1, students[i].marks[j]);
+                }
+            }
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Student not found!\n");
+    }
+}
+
+// Add or update marks
+void add_marks() {
+    char roll[ROLL_LEN];
+    printf("Enter Roll Number: ");
+    read_string(roll, ROLL_LEN);
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    printf("Enter number of subjects (1-5): ");
+    int sub_count = read_int();
+
+    if (sub_count < 1 || sub_count > MAX_SUBJECTS) {
+        printf("Invalid subject count!\n");
+        return;
+    }
+
+    students[index].subject_count = sub_count;
+
+    for (int i = 0; i < sub_count; i++) {
+        printf("Enter marks for Subject %d (0-100): ", i + 1);
+        students[index].marks[i] = read_int();
+
+        if (students[index].marks[i] < 0 || students[index].marks[i] > 100) {
+            printf("Invalid marks! Setting to 0.\n");
+            students[index].marks[i] = 0;
+        }
+    }
+
+    save_students();
+    printf("Marks added successfully!\n");
+}
+
+// Display student result
+void display_result() {
+    char roll[ROLL_LEN];
+    printf("Enter Roll Number: ");
+    read_string(roll, ROLL_LEN);
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    if (students[index].subject_count == 0) {
+        printf("No marks available for this student!\n");
+        return;
+    }
+
+    print_header("STUDENT RESULT");
+    printf("Roll No: %s\n", students[index].roll);
+    printf("Name: %s\n", students[index].name);
+    printf("Year: %d\n", students[index].year);
+    printf("\nMarks:\n");
+    printf("----------------------------------------\n");
+
+    int total = 0;
+    for (int i = 0; i < students[index].subject_count; i++) {
+        printf("Subject %d: %d\n", i + 1, students[index].marks[i]);
+        total += students[index].marks[i];
+    }
+
+    float percentage = (float)total / (students[index].subject_count * 100) * 100;
+    char grade;
+
+    if (percentage >= 90) grade = 'A';
+    else if (percentage >= 80) grade = 'B';
+    else if (percentage >= 70) grade = 'C';
+    else if (percentage >= 60) grade = 'D';
+    else grade = 'F';
+
+    printf("----------------------------------------\n");
+    printf("Total Marks: %d\n", total);
+    printf("Percentage: %.2f%%\n", percentage);
+    printf("Grade: %c\n", grade);
+}
+
+// Show ranking of students
+void show_ranking() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    // Create array of students with percentage
+    struct Rank {
+        char name[NAME_LEN];
+        char roll[ROLL_LEN];
+        float percentage;
+    } ranks[MAX_STUDENTS];
+
+    int valid_count = 0;
+
+    for (int i = 0; i < student_count; i++) {
+        if (students[i].subject_count > 0) {
+            int total = 0;
+            for (int j = 0; j < students[i].subject_count; j++) {
+                total += students[i].marks[j];
+            }
+
+            ranks[valid_count].percentage = (float)total / (students[i].subject_count * 100) * 100;
+            strcpy(ranks[valid_count].name, students[i].name);
+            strcpy(ranks[valid_count].roll, students[i].roll);
+            valid_count++;
+        }
+    }
+
+    if (valid_count == 0) {
+        printf("No results available for ranking!\n");
+        return;
+    }
+
+    // Simple bubble sort
+    for (int i = 0; i < valid_count - 1; i++) {
+        for (int j = i + 1; j < valid_count; j++) {
+            if (ranks[j].percentage > ranks[i].percentage) {
+                struct Rank temp = ranks[i];
+                ranks[i] = ranks[j];
+                ranks[j] = temp;
+            }
+        }
+    }
+
+    print_header("CLASS RANKING");
+    printf("%-5s %-15s %-30s %-10s\n", "Rank", "Roll No", "Name", "Percentage");
+    printf("------------------------------------------------------------\n");
+
+    for (int i = 0; i < valid_count; i++) {
+        printf("%-5d %-15s %-30s %.2f%%\n",
+               i + 1,
+               ranks[i].roll,
+               ranks[i].name,
+               ranks[i].percentage);
+    }
+}
+
+// Initialize default data
+void init_data() {
+    // Check if data exists
+    FILE *fp = fopen(STUDENT_FILE, "rb");
+    if (fp == NULL) {
+        // Add default admin user
+        struct User admin;
+        strcpy(admin.username, "admin");
+        strcpy(admin.password, "admin123");
+        strcpy(admin.role, "admin");
+
+        users[0] = admin;
+        user_count = 1;
+        save_users();
+
+        // Add default teacher user
+        struct User teacher;
+        strcpy(teacher.username, "teacher");
+        strcpy(teacher.password, "teacher123");
+        strcpy(teacher.role, "teacher");
+
+        users[1] = teacher;
+        user_count = 2;
+        save_users();
+
+        printf("Default users created!\n");
+        printf("Admin: admin/admin123\n");
+        printf("Teacher: teacher/teacher123\n");
+    } else {
+        fclose(fp);
+    }
+}
+
+// Login function
+void login() {
+    char username[30], password[30];
+
+    print_header("LOGIN");
+
+    printf("Username: ");
+    read_string(username, 30);
+    printf("Password: ");
+    read_string(password, 30);
+
+    for (int i = 0; i < user_count; i++) {
+        if (strcmp(users[i].username, username) == 0 &&
+            strcmp(users[i].password, password) == 0) {
+            current_user = users[i];
+            logged_in = 1;
+            printf("\nLogin successful! Welcome, %s\n", username);
+            pause_screen();
+            return;
+        }
+    }
+
+    printf("\nInvalid username or password!\n");
+    pause_screen();
+}
+
+// Admin menu
+void admin_menu() {
+    int choice;
+
+    do {
+        clear_screen();
+        print_header("ADMIN MENU");
+        printf("1. Add Student\n");
+        printf("2. View All Students\n");
+        printf("3. Search Student\n");
+        printf("4. Add Marks\n");
+        printf("5. View Student Result\n");
+        printf("6. Show Ranking\n");
+        printf("7. Logout\n");
+        printf("\nChoice: ");
+
+        choice = read_int();
+
+        switch(choice) {
+            case 1: add_student(); break;
+            case 2: display_students(); break;
+            case 3: search_student(); break;
+            case 4: add_marks(); break;
+            case 5: display_result(); break;
+            case 6: show_ranking(); break;
+            case 7: logged_in = 0; break;
+            default: printf("Invalid choice!\n");
+        }
+
+        if (choice >= 1 && choice <= 6) {
+            pause_screen();
+        }
+
+    } while (choice != 7);
+}
+
+// Teacher menu
+void teacher_menu() {
+    int choice;
+
+    do {
+        clear_screen();
+        print_header("TEACHER MENU");
+        printf("1. View All Students\n");
+        printf("2. Search Student\n");
+        printf("3. Add Marks\n");
+        printf("4. View Student Result\n");
+        printf("5. Show Ranking\n");
+        printf("6. Logout\n");
+        printf("\nChoice: ");
+
+        choice = read_int();
+
+        switch(choice) {
+            case 1: display_students(); break;
+            case 2: search_student(); break;
+            case 3: add_marks(); break;
+            case 4: display_result(); break;
+            case 5: show_ranking(); break;
+            case 6: logged_in = 0; break;
+            default: printf("Invalid choice!\n");
+        }
+
+        if (choice >= 1 && choice <= 5) {
+            pause_screen();
+        }
+
+    } while (choice != 6);
+}
+
+// Student menu
+void student_menu() {
+    int choice;
+
+    do {
+        clear_screen();
+        print_header("STUDENT MENU");
+        printf("1. View My Result\n");
+        printf("2. View Class Ranking\n");
+        printf("3. Logout\n");
+        printf("\nChoice: ");
+
+        choice = read_int();
+
+        if (choice == 1) {
+            printf("\n");
+            display_result();
+            pause_screen();
+        } else if (choice == 2) {
+            show_ranking();
+            pause_screen();
+        } else if (choice == 3) {
+            logged_in = 0;
+        } else {
+            printf("Invalid choice!\n");
+            pause_screen();
+        }
+
+    } while (choice != 3);
+}
+
+// Main function
+int main() {
+    // Load existing data
+    load_students();
+    load_users();
+
+    // Initialize default data if needed
+    init_data();
+
+    int choice;
+
+    do {
+        clear_screen();
+        print_header("STUDENT RESULT MANAGEMENT SYSTEM");
+
+        if (!logged_in) {
+            printf("1. Login\n");
+            printf("2. Exit\n");
+            printf("\nChoice: ");
+
+            choice = read_int();
+
+            if (choice == 1) {
+                login();
+            } else if (choice == 2) {
+                break;
+            } else {
+                printf("Invalid choice!\n");
+                pause_screen();
+            }
+        } else {
+            // Show appropriate menu based on role
+            if (strcmp(current_user.role, "admin") == 0) {
+                admin_menu();
+            } else if (strcmp(current_user.role, "teacher") == 0) {
+                teacher_menu();
+            } else if (strcmp(current_user.role, "student") == 0) {
+                student_menu();
+            }
+        }
+
+    } while (1);
+
+    // Save data before exit
+    save_students();
+    save_users();
+
+    printf("\nThank you for using the system!\n");
+    return 0;
+}
+
