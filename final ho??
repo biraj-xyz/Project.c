@@ -119,6 +119,8 @@ void load_users() {
     if (fp == NULL) {
         strcpy(users[0].username, "admin");
         strcpy(users[0].password, "admin123");
+        strcpy(users[1].username,"teacher");
+        strcpy(users[1].password,"teacher123");
         user_count = 4;
         save_users();
         return;
@@ -627,13 +629,39 @@ int main() {
 
             scanf("%d", &ch);
             getchar();
+                if (ch == 1) {
+                    int choice;
+                    clear_screen();
+                    print_header("STUDENT RECORD MANAGEMENT SYSTEM");
+                    printf("[1] Admin\n");
+                    printf("[2] Teacher\n");
+                    printf("[3] Student\n");
+                    printf("Choice: ");
+                    scanf("%d",&choice);
+                    getchar();
+                    login(choice);
+                    if (logged_in) {
+                     
+                        switch (choice){
+                            case 1:
+                            main_menu();
+                            break;
 
-            if (ch == 1) {
-                login();
-                if (logged_in) {
-                    main_menu();
+                            case 2:
+                            main_menu();
+                            break;
+
+                            case 3:
+                            break;
+
+                            default:
+                            printf("Invalid role\n");
+                            pause_screen();
+                    }
+                    
                 }
-            } else if (ch == 2) {
+            } 
+            else if (ch == 2) {
                 break;
             } else {
                 printf("Invalid choice!\n");
