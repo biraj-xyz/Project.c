@@ -88,6 +88,7 @@ void calculate_total(Student *s) {
         strcpy(s->result, "FAIL");
     }
 }
+(IOE ko hisab le garna baki)
 char calculate_grade(int marks) {
     if (marks >= 90) return 'A';
     else if (marks >= 80) return 'B';
@@ -125,7 +126,7 @@ void load_students() {
     fgets(line, sizeof(line), fp);
     user_count = 0;
     while (fgets(line, sizeof(line), fp) && user_count < 10) {
-        sscanf(line, "%[^,],%[^\n]", users[user_count].username, users[user_count].password);
+        sscanf(line, "%[^,],%[^\n]", users[user_count].username, users[user_count].password);    //baki                                                  
         user_count++;
     }
     fclose(fp);
@@ -148,6 +149,8 @@ void load_users() {
 
         strcpy(users[0].username, "admin");
         strcpy(users[0].password, "admin123");
+        strcpy(users[1].username, "teacher");
+        strcpy(users[1].password,"teacher123");
         user_count = 20;
         save_users();
         return;
@@ -186,7 +189,7 @@ void add_student() {
 
     printf("Enter Name: ");
     fgets(s.name, MAX_NAME, stdin);
-    s.name[strcspn(s.name, "\n")] = '\0';
+    s.name[strcspn(s.name, "\n")] = '\0';    
 
     printf("Theory Marks (0-100): ");
     scanf("%d", &s.theory);
@@ -571,7 +574,6 @@ void main_menu() {
 
     } while (ch != 10);
 }
-
 int main() {
     load_students();
     load_users();
@@ -583,19 +585,45 @@ int main() {
         print_header("STUDENT RECORD MANAGEMENT SYSTEM");
 
         if (!logged_in) {
+            clear_screen();
             printf("1. Login\n");
             printf("2. Exit\n");
             printf("\nChoice: ");
-
             scanf("%d", &ch);
             getchar();
 
             if (ch == 1) {
-                login();
-                if (logged_in) {
-                    main_menu();
+                int choice;
+                clear_screen();
+                printf("[1] Admin\n");
+                printf("[2] Teacher\n");
+                printf("[3] Student\n");
+                printf("Choice: ");
+                scanf("%d",&choice);
+                getchar();
+                login(choice);
+                    if (logged_in) {
+                     
+                        switch (choice){
+                            case 1:
+                            main_menu();
+                            break;
+
+                            case 2:
+                            main_menu();
+                            break;
+
+                            case 3:
+                            break;
+
+                            default:
+                            printf("Invalid role\n");
+                            pause_screen();
+                    }
+                    
                 }
-            } else if (ch == 2) {
+            } 
+            else if (ch == 2) {
                 break;
             } else {
                 printf("Invalid choice!\n");
