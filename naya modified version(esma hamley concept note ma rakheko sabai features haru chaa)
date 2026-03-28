@@ -1,0 +1,625 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+
+#define MAX_STUDENTS 100
+#define MAX_NAME 100
+#define MAX_ROLL 20
+
+
+typedef struct {
+    char roll[MAX_ROLL];
+    char name[MAX_NAME];
+    int theory;
+    int practical;
+    int viva;
+    float attendance;
+    int total;
+    char grade;
+    char result[10];
+} Student;
+
+
+typedef struct {
+    char username[30];
+    char password[30];
+} User;
+
+
+Student students[MAX_STUDENTS];
+User users[10];
+int student_count = 0;
+int user_count = 0;
+int logged_in = 0;
+
+
+const char *STUDENT_FILE = "students.csv";
+const char *USER_FILE = "users.csv";
+
+
+void save_students();
+void load_students();
+void save_users();
+void load_users();
+void add_student();
+void view_all();
+void search_student();
+void update_student();
+void delete_student();
+void show_statistics();
+void sort_by_marks();
+void show_attendance();
+void update_attendance();
+void login();
+void main_menu();
+void clear_screen();
+void pause_screen();
+void print_header(char *title);
+char calculate_grade(int marks);
+void calculate_total(Student *s);
+
+void clear_screen() {
+    printf("\033[2J\033[H");
+}
+
+void pause_screen() {
+    printf("\nPress Enter to continue...");
+    getchar();
+}
+
+void print_header(char *title) {
+    printf("\n========================================\n");
+    printf("  %s\n", title);
+    printf("========================================\n\n");
+}
+
+char calculate_grade(int marks) {
+    if (marks >= 90) return 'A';
+    else if (marks >= 80) return 'B';
+    else if (marks >= 70) return 'C';
+    else if (marks >= 60) return 'D';
+    else if (marks >= 50) return 'E';
+    else return 'F';
+}
+
+void calculate_total(Student *s) {
+    s->total = s->theory + s->practical + s->viva;
+    s->grade = calculate_grade(s->total);
+
+    if (s->total >= 40 && s->attendance >= 75) {
+        strcpy(s->result, "PASS");
+    } else if (s->attendance < 75) {
+        strcpy(s->result, "LOW ATTEND");
+    } else {
+        strcpy(s->result, "FAIL");
+    }
+}
+
+
+void save_students() {
+    FILE *fp = fopen(STUDENT_FILE, "w");
+    if (fp == NULL) {
+        printf("Error saving data!\n");
+        return;
+    }
+
+    fprintf(fp, "Roll,Name,Theory,Practical,Viva,Attendance,Total,Grade,Result\n");
+    for (int i = 0; i < student_count; i++) {
+        fprintf(fp, "%s,%s,%d,%d,%d,%.2f,%d,%c,%s\n",
+                students[i].roll, students[i].name,
+                students[i].theory, students[i].practical, students[i].viva,
+                students[i].attendance, students[i].total,
+                students[i].grade, students[i].result);
+    }
+    fclose(fp);
+    printf("Data saved successfully!\n");
+}
+
+void load_students() {
+    FILE *fp = fopen(STUDENT_FILE, "r");
+    if (fp == NULL) {
+        student_count = 0;
+        return;
+    }
+
+    char line[500];
+    fgets(line, sizeof(line), fp);
+
+    student_count = 0;
+    while (fgets(line, sizeof(line), fp) && student_count < MAX_STUDENTS) {
+        Student s;
+        char result[20];
+
+        sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^\n]",
+               s.roll, s.name, &s.theory, &s.practical, &s.viva,
+               &s.attendance, &s.total, &s.grade, result);
+        strcpy(s.result, result);
+
+        students[student_count] = s;
+        student_count++;
+    }
+    fclose(fp);
+}
+
+void save_users() {
+    FILE *fp = fopen(USER_FILE, "w");
+    if (fp == NULL) return;
+
+    fprintf(fp, "Username,Password\n");
+    for (int i = 0; i < user_count; i++) {
+        fprintf(fp, "%s,%s\n", users[i].username, users[i].password);
+    }
+    fclose(fp);
+}
+
+void load_users() {
+    FILE *fp = fopen(USER_FILE, "r");
+    if (fp == NULL) {
+
+        strcpy(users[0].username, "admin");
+        strcpy(users[0].password, "admin123");
+        user_count = 20;
+        save_users();
+        return;
+    }
+
+    char line[200];
+    fgets(line, sizeof(line), fp);
+    user_count = 0;
+    while (fgets(line, sizeof(line), fp) && user_count < 10) {
+        sscanf(line, "%[^,],%[^\n]", users[user_count].username, users[user_count].password);
+        user_count++;
+    }
+    fclose(fp);
+}
+
+
+void add_student() {
+    if (student_count >= MAX_STUDENTS) {
+        printf("Maximum students limit reached!\n");
+        return;
+    }
+
+    Student s;
+
+    printf("Enter Roll Number: ");
+    scanf("%s", s.roll);
+    getchar();
+
+
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, s.roll) == 0) {
+            printf("Student already exists!\n");
+            return;
+        }
+    }
+
+    printf("Enter Name: ");
+    fgets(s.name, MAX_NAME, stdin);
+    s.name[strcspn(s.name, "\n")] = '\0';
+
+    printf("Theory Marks (0-100): ");
+    scanf("%d", &s.theory);
+
+    printf("Practical Marks (0-100): ");
+    scanf("%d", &s.practical);
+
+    printf("Viva Marks (0-100): ");
+    scanf("%d", &s.viva);
+
+    printf("Attendance Percentage (0-100): ");
+    scanf("%f", &s.attendance);
+    getchar();
+
+
+    if (s.theory < 0 || s.theory > 100 || s.practical < 0 || s.practical > 100 ||
+        s.viva < 0 || s.viva > 100 || s.attendance < 0 || s.attendance > 100) {
+        printf("Invalid input! All values must be 0-100.\n");
+        return;
+    }
+
+    calculate_total(&s);
+    students[student_count] = s;
+    student_count++;
+    save_students();
+
+    printf("\nStudent added successfully!\n");
+    printf("Total: %d/300 | Grade: %c | Result: %s\n", s.total, s.grade, s.result);
+}
+
+void view_all() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    print_header("ALL STUDENTS");
+    printf("%-12s %-20s %3s %3s %3s %5s %6s %4s %s\n",
+           "Roll No", "Name", "Th", "Pr", "Vi", "Total", "Attend%%", "Gr", "Result");
+    printf("---------------------------------------------------------------\n");
+
+    for (int i = 0; i < student_count; i++) {
+        printf("%-12s %-20s %3d %3d %3d %5d %6.2f %4c %s\n",
+               students[i].roll, students[i].name,
+               students[i].theory, students[i].practical, students[i].viva,
+               students[i].total, students[i].attendance,
+               students[i].grade, students[i].result);
+    }
+    printf("\nTotal: %d students\n", student_count);
+}
+
+void search_student() {
+    char search[MAX_ROLL];
+    printf("Enter Roll Number or Name: ");
+    scanf("%s", search);
+    getchar();
+
+    int found = 0;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, search) == 0 ||
+            strstr(students[i].name, search) != NULL) {
+            found = 1;
+            printf("\n----------------------------------------\n");
+            printf("Roll No: %s\n", students[i].roll);
+            printf("Name: %s\n", students[i].name);
+            printf("Theory: %d/100\n", students[i].theory);
+            printf("Practical: %d/100\n", students[i].practical);
+            printf("Viva: %d/100\n", students[i].viva);
+            printf("Total: %d/300\n", students[i].total);
+            printf("Attendance: %.2f%%\n", students[i].attendance);
+            printf("Grade: %c\n", students[i].grade);
+            printf("Result: %s\n", students[i].result);
+            printf("----------------------------------------\n");
+        }
+    }
+
+    if (!found) printf("No student found with '%s'\n", search);
+}
+
+void update_student() {
+    char roll[MAX_ROLL];
+    printf("Enter Roll Number to update: ");
+    scanf("%s", roll);
+    getchar();
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    printf("\nCurrent: %s | Theory:%d Practical:%d Viva:%d\n",
+           students[index].name, students[index].theory,
+           students[index].practical, students[index].viva);
+
+    printf("New Theory Marks (%d): ", students[index].theory);
+    int temp;
+    scanf("%d", &temp);
+    if (temp >= 0 && temp <= 100) students[index].theory = temp;
+
+    printf("New Practical Marks (%d): ", students[index].practical);
+    scanf("%d", &temp);
+    if (temp >= 0 && temp <= 100) students[index].practical = temp;
+
+    printf("New Viva Marks (%d): ", students[index].viva);
+    scanf("%d", &temp);
+    if (temp >= 0 && temp <= 100) students[index].viva = temp;
+    getchar();
+
+    calculate_total(&students[index]);
+    save_students();
+    printf("Student updated successfully!\n");
+}
+
+void delete_student() {
+    char roll[MAX_ROLL];
+    printf("Enter Roll Number to delete: ");
+    scanf("%s", roll);
+    getchar();
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    printf("Delete %s? (y/n): ", students[index].name);
+    char confirm;
+    scanf("%c", &confirm);
+    getchar();
+
+    if (confirm == 'y' || confirm == 'Y') {
+        for (int i = index; i < student_count - 1; i++) {
+            students[i] = students[i + 1];
+        }
+        student_count--;
+        save_students();
+        printf("Student deleted successfully!\n");
+    }
+}
+
+void show_statistics() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    int highest = -1, lowest = 301, total_marks = 0;
+    int pass = 0, fail = 0, low_att = 0;
+    int grade_a = 0, grade_b = 0, grade_c = 0, grade_d = 0, grade_e = 0, grade_f = 0;
+
+    for (int i = 0; i < student_count; i++) {
+        total_marks += students[i].total;
+
+        if (students[i].total > highest) highest = students[i].total;
+        if (students[i].total < lowest) lowest = students[i].total;
+
+        if (strcmp(students[i].result, "PASS") == 0) pass++;
+        else fail++;
+
+        if (students[i].attendance < 75) low_att++;
+
+        switch(students[i].grade) {
+            case 'A': grade_a++; break;
+            case 'B': grade_b++; break;
+            case 'C': grade_c++; break;
+            case 'D': grade_d++; break;
+            case 'E': grade_e++; break;
+            case 'F': grade_f++; break;
+        }
+    }
+
+    float avg = (float)total_marks / student_count;
+    float pass_per = (float)pass / student_count * 100;
+
+    print_header("CLASS STATISTICS");
+    printf("Total Students: %d\n", student_count);
+    printf("Highest Marks: %d/300\n", highest);
+    printf("Lowest Marks: %d/300\n", lowest);
+    printf("Average Marks: %.2f/300\n", avg);
+    printf("\n");
+    printf("Passed: %d (%.2f%%)\n", pass, pass_per);
+    printf("Failed: %d (%.2f%%)\n", fail, 100 - pass_per);
+    printf("\n");
+    printf("Low Attendance (<75%%): %d\n", low_att);
+    printf("\nGrade Distribution:\n");
+    printf("A: %d | B: %d | C: %d | D: %d | E: %d | F: %d\n",
+           grade_a, grade_b, grade_c, grade_d, grade_e, grade_f);
+}
+
+void sort_by_marks() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    Student sorted[MAX_STUDENTS];
+    memcpy(sorted, students, sizeof(Student) * student_count);
+
+    // Sort by total marks
+    for (int i = 0; i < student_count - 1; i++) {
+        for (int j = i + 1; j < student_count; j++) {
+            if (sorted[j].total > sorted[i].total) {
+                Student temp = sorted[i];
+                sorted[i] = sorted[j];
+                sorted[j] = temp;
+            }
+        }
+    }
+
+    print_header("RANKINGS (By Total Marks)");
+    printf("%-5s %-12s %-20s %-8s %s\n", "Rank", "Roll No", "Name", "Total", "Grade");
+    printf("--------------------------------------------\n");
+
+    for (int i = 0; i < student_count; i++) {
+        printf("%-5d %-12s %-20s %-8d %c\n",
+               i + 1, sorted[i].roll, sorted[i].name,
+               sorted[i].total, sorted[i].grade);
+    }
+}
+
+void show_attendance() {
+    if (student_count == 0) {
+        printf("No students found!\n");
+        return;
+    }
+
+    print_header("ATTENDANCE REPORT");
+    printf("%-12s %-20s %-10s %s\n", "Roll No", "Name", "Attendance", "Status");
+    printf("--------------------------------------------\n");
+
+    int eligible = 0;
+    for (int i = 0; i < student_count; i++) {
+        char status[20];
+        if (students[i].attendance >= 75) {
+            strcpy(status, "Eligible");
+            eligible++;
+        } else {
+            strcpy(status, "Not Eligible");
+        }
+
+        printf("%-12s %-20s %-10.2f %s\n",
+               students[i].roll, students[i].name,
+               students[i].attendance, status);
+    }
+
+    printf("\nEligible for exams: %d/%d (%.2f%%)\n",
+           eligible, student_count, (float)eligible / student_count * 100);
+}
+
+void update_attendance() {
+    char roll[MAX_ROLL];
+    printf("Enter Roll Number: ");
+    scanf("%s", roll);
+    getchar();
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    printf("Current Attendance: %.2f%%\n", students[index].attendance);
+    printf("New Attendance: ");
+    scanf("%f", &students[index].attendance);
+    getchar();
+
+    if (students[index].attendance >= 0 && students[index].attendance <= 100) {
+        calculate_total(&students[index]);
+        save_students();
+        printf("Attendance updated successfully!\n");
+    } else {
+        printf("Invalid attendance percentage!\n");
+        students[index].attendance = 0;
+    }
+}
+
+void login() {
+    char username[30], password[30];
+
+    print_header("LOGIN");
+    printf("Username: ");
+    scanf("%s", username);
+    printf("Password: ");
+    scanf("%s", password);
+    getchar();
+
+    for (int i = 0; i < user_count; i++) {
+        if (strcmp(users[i].username, username) == 0 &&
+            strcmp(users[i].password, password) == 0) {
+            logged_in = 1;
+            printf("\nLogin successful! Welcome, %s\n", username);
+            pause_screen();
+            return;
+        }
+    }
+
+    printf("\nInvalid username or password!\n");
+    pause_screen();
+}
+
+void main_menu() {
+    int ch;
+
+    do {
+        clear_screen();
+        print_header("STUDENT RECORD MANAGEMENT SYSTEM");
+        printf("1. Add Student\n");
+        printf("2. View All Students\n");
+        printf("3. Search Student\n");
+        printf("4. Update Student\n");
+        printf("5. Delete Student\n");
+        printf("6. Class Statistics\n");
+        printf("7. Rankings (Sort by Marks)\n");
+        printf("8. Attendance Report\n");
+        printf("9. Update Attendance\n");
+        printf("10. Logout\n");
+        printf("\nChoice: ");
+
+        scanf("%d", &ch);
+        getchar();
+
+        switch(ch) {
+            case 1:
+                add_student();
+                break;
+            case 2:
+                view_all();
+                break;
+            case 3:
+                search_student();
+                break;
+            case 4:
+                update_student();
+                break;
+            case 5:
+                delete_student();
+                break;
+            case 6:
+                show_statistics();
+                break;
+            case 7:
+                sort_by_marks();
+                break;
+            case 8:
+                show_attendance();
+                break;
+            case 9:
+                update_attendance();
+                break;
+            case 10:
+                logged_in = 0;
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+
+        if (ch >= 1 && ch <= 9) {
+            pause_screen();
+        }
+
+    } while (ch != 10);
+}
+
+int main() {
+    load_students();
+    load_users();
+
+    int ch;
+
+    do {
+        clear_screen();
+        print_header("STUDENT RECORD MANAGEMENT SYSTEM");
+
+        if (!logged_in) {
+            printf("1. Login\n");
+            printf("2. Exit\n");
+            printf("\nChoice: ");
+
+            scanf("%d", &ch);
+            getchar();
+
+            if (ch == 1) {
+                login();
+                if (logged_in) {
+                    main_menu();
+                }
+            } else if (ch == 2) {
+                break;
+            } else {
+                printf("Invalid choice!\n");
+                pause_screen();
+            }
+        }
+
+    } while (1);
+
+    save_students();
+    save_users();
+
+    printf("\nThank you for using the system!\n");
+    return 0;
+}
