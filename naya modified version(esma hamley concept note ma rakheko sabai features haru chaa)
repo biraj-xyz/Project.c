@@ -75,14 +75,6 @@ void print_header(char *title) {
     printf("========================================\n\n");
 }
 
-char calculate_grade(int marks) {
-    if (marks >= 90) return 'A';
-    else if (marks >= 80) return 'B';
-    else if (marks >= 70) return 'C';
-    else if (marks >= 60) return 'D';
-    else if (marks >= 50) return 'E';
-    else return 'F';
-}
 
 void calculate_total(Student *s) {
     s->total = s->theory + s->practical + s->viva;
@@ -96,6 +88,14 @@ void calculate_total(Student *s) {
         strcpy(s->result, "FAIL");
     }
 }
+char calculate_grade(int marks) {
+    if (marks >= 90) return 'A';
+    else if (marks >= 80) return 'B';
+    else if (marks >= 70) return 'C';
+    else if (marks >= 60) return 'D';
+    else if (marks >= 50) return 'E';
+    else return 'F';
+}
 
 
 void save_students() {
@@ -104,14 +104,11 @@ void save_students() {
         printf("Error saving data!\n");
         return;
     }
+//Roll no sorting garna bakiii//
 
     fprintf(fp, "Roll,Name,Theory,Practical,Viva,Attendance,Total,Grade,Result\n");
     for (int i = 0; i < student_count; i++) {
-        fprintf(fp, "%s,%s,%d,%d,%d,%.2f,%d,%c,%s\n",
-                students[i].roll, students[i].name,
-                students[i].theory, students[i].practical, students[i].viva,
-                students[i].attendance, students[i].total,
-                students[i].grade, students[i].result);
+        fprintf(fp, "%s,%s,%d,%d,%d,%.2f,%d,%c,%s\n",students[i].roll, students[i].name, students[i].theory, students[i].practical, students[i].viva, students[i].attendance, students[i].total, students[i].grade, students[i].result);
     }
     fclose(fp);
     printf("Data saved successfully!\n");
@@ -124,21 +121,12 @@ void load_students() {
         return;
     }
 
-    char line[500];
+    char line[200];
     fgets(line, sizeof(line), fp);
-
-    student_count = 0;
-    while (fgets(line, sizeof(line), fp) && student_count < MAX_STUDENTS) {
-        Student s;
-        char result[20];
-
-        sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^\n]",
-               s.roll, s.name, &s.theory, &s.practical, &s.viva,
-               &s.attendance, &s.total, &s.grade, result);
-        strcpy(s.result, result);
-
-        students[student_count] = s;
-        student_count++;
+    user_count = 0;
+    while (fgets(line, sizeof(line), fp) && user_count < 10) {
+        sscanf(line, "%[^,],%[^\n]", users[user_count].username, users[user_count].password);
+        user_count++;
     }
     fclose(fp);
 }
