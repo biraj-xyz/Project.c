@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <windows.h>  // for Sleep()
 
 #define MAX_STUDENTS 100
 #define MAX_NAME 100
@@ -62,10 +63,44 @@ void clear_screen() {
 void pause_screen() {
     printf("\nPress Enter to continue...");
     getchar(); }
+void print_animated(char *text) {
+    for (int i = 0; text[i] != '\0'; i++) {
+        printf("%c", text[i]);
+        Sleep(40);   // speed (lower = faster)
+    }
+    printf("\n");
+}
+
+
+void animate_line(int length) {
+    for (int i = 0; i < length; i++) {
+        printf("=");
+        Sleep(15);   // speed of line drawing
+    }
+    printf("\n");
+}
+
+void print_header_w_animation(char *title) {
+    printf("\n");
+
+    animate_line(40);          // top animated line
+
+    // center the title a bit
+    int spaces = (40 - strlen(title)) / 2;
+    for (int i = 0; i < spaces; i++) {
+        printf(" ");
+    }
+
+    print_animated(title);     // animated title
+
+    animate_line(40);          // bottom animated line
+
+    printf("\n");
+}
 
 void print_header(char *title) {
     printf("\n========================================\n");
-    printf("  %s\n", title);
+    printf("%s\n", title);
     printf("========================================\n\n");
 }
 
@@ -171,7 +206,6 @@ void load_users() {
     //  Save updated list to file
     save_users();
 }
-    
 
 void save_students() 
 {
@@ -655,7 +689,7 @@ int main() {
     int ch;
      do {
         clear_screen();
-        print_header("STUDENT RECORD MANAGEMENT SYSTEM");
+        print_header_w_animation("STUDENT RECORD MANAGEMENT SYSTEM");
 
         if (!logged_in) {
             printf("1. Login\n");
@@ -674,7 +708,7 @@ int main() {
                     printf("Choice: ");
                     scanf("%d",&choice);
                     getchar();
-                    login();
+                    login(choice);
                     if (logged_in) {
                      
                         switch (choice){
@@ -707,6 +741,6 @@ int main() {
      } while (1);
     save_students();
     save_users();
-    printf("\nThank you for using the system!\n");
+    print_header_w_animation("\nThank you for using the system!\n");
     return 0;
 }
