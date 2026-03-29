@@ -116,27 +116,62 @@ student_count++;  }
 
 void load_users() {
     FILE *fp = fopen(USER_FILE, "r");
-    if (fp == NULL) {
-        strcpy(users[0].username, "admin");
-        strcpy(users[0].password, "admin123");
-        strcpy(users[1].username,"teacher");
-        strcpy(users[1].password,"teacher123");
-        user_count = 4;
-        save_users();
-        return;
+
+    user_count = 0;
+
+    // If file exists → read users
+    if (fp != NULL) {
+        char line[200];
+
+        // Skip header
+        fgets(line, sizeof(line), fp);
+
+        while (fgets(line, sizeof(line), fp) && user_count < 10) {
+            sscanf(line, "%[^,],%[^\n]",
+                   users[user_count].username,
+                   users[user_count].password);
+
+            // Remove newline if present
+            int len = strlen(users[user_count].password);
+            if (len > 0 && users[user_count].password[len - 1] == '\n') {
+                users[user_count].password[len - 1] = '\0';
+            }
+
+            user_count++;
+        }
+
+        fclose(fp);
     }
-  char line[200];
-  fgets(line, sizeof(line), fp);
-   user_count = 0;
-    while (fgets(line, sizeof(line), fp) && user_count < 10) {
-        sscanf(line, "%[^,],%[^\n]", users[user_count].username, users[user_count].password);
-        int len = strlen(users[user_count].password);
-        if (len > 0 && users[user_count].password[len-1] == '\n')
-            users[user_count].password[len-1] = '\0';
+
+    //  Check if default users exist
+    int found_admin = 0, found_teacher = 0;
+
+    for (int i = 0; i < user_count; i++) {
+        if (strcmp(users[i].username, "admin") == 0)
+            found_admin = 1;
+
+        if (strcmp(users[i].username, "teacher") == 0)
+            found_teacher = 1;
+    }
+
+    //  Add admin if missing
+    if (!found_admin && user_count < 10) {
+        strcpy(users[user_count].username, "admin");
+        strcpy(users[user_count].password, "admin123");
         user_count++;
-     }
-    fclose(fp);
+    }
+
+    //  Add teacher if missing
+    if (!found_teacher && user_count < 10) {
+        strcpy(users[user_count].username, "teacher");
+        strcpy(users[user_count].password, "teacher123");
+        user_count++;
+    }
+
+    //  Save updated list to file
+    save_users();
 }
+    
 
 void save_students() 
 {
