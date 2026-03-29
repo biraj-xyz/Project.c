@@ -639,7 +639,7 @@ int main() {
                     printf("Choice: ");
                     scanf("%d",&choice);
                     getchar();
-                    login(choice);
+                    login();
                     if (logged_in) {
                      
                         switch (choice){
