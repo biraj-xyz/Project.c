@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <ctype.h> //yesko ke cha ra kaam?
 #include <windows.h>  // for Sleep()
 
 #define MAX_STUDENTS 100
@@ -35,6 +35,8 @@ int logged_in = 0;
 const char *STUDENT_FILE = "students.csv";
 const char *USER_FILE = "users.csv";
 
+void clear_screen();
+void pause_screen();
 void save_students();
 void load_students();
 void save_users();
@@ -50,24 +52,29 @@ void show_attendance();
 void update_attendance();
 void login();
 void main_menu();
-void clear_screen();
-void pause_screen();
 void print_header(char *title);
 char calculate_grade(int marks);
 void calculate_total(Student *s);
 void assign_roll_numbers(int year);
 
-void clear_screen() {
-    system("cls"); }
+void clear_screen()
+{
+    system("cls");
+}
 
-void pause_screen() {
+void pause_screen()
+{
     printf("\nPress Enter to continue...");
-    getchar(); }
-void print_animated(char *text) {
-    for (int i = 0; text[i] != '\0'; i++) {
+    getchar(); 
+}
+
+void print_animated(char *text) 
+{
+    for (int i = 0; text[i] != '\0'; i++)
+       {
         printf("%c", text[i]);
         Sleep(40);   // speed (lower = faster)
-    }
+       }
     printf("\n");
 }
 
