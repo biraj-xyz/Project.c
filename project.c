@@ -163,13 +163,27 @@ void load_students() {
     char line[500];
     fgets(line, sizeof(line), fp);
     student_count = 0;
+    
     while (fgets(line, sizeof(line), fp) && student_count < MAX_STUDENTS) {
         Student s;
         char result[20];
-sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^\n]",
-       s.roll, s.name, &s.theory, &s.practical, &s.viva,
-       &s.attendance, &s.total, &s.grade, result);
-strcpy(s.result, result);
+        int d, m, y;
+        char add[40];
+        char g;
+        int ph;
+        
+        sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^,],%d-%d-%d,%[^,],%c,%d",
+               s.roll, s.name, &s.theory, &s.practical, &s.viva,
+               &s.attendance, &s.total, &s.grade, result,
+               &d, &m, &y, add, &g, &ph);
+        
+        strcpy(s.result, result);
+        sd[student_count].dob.d = d;
+        sd[student_count].dob.m = m;
+        sd[student_count].dob.y = y;
+        strcpy(sd[student_count].add, add);
+        sd[student_count].g = g;
+        sd[student_count].ph = ph;
 
         if (strstr(s.roll, "082BME")) s.year = 1;
         else if (strstr(s.roll, "081BME")) s.year = 2;
