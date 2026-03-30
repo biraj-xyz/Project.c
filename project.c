@@ -7,6 +7,21 @@
 #define MAX_NAME 100
 #define MAX_ROLL 20
 
+typedef struct Dob{
+     int d;
+     int m;
+     int y;
+ };
+
+typedef struct
+{
+    struct Dob dob;
+    int ph;
+    char g;
+    char add[40];
+
+}Sd;
+
 typedef struct {
     int year;
     char roll[MAX_ROLL];
@@ -35,6 +50,7 @@ typedef struct {
 
 Student students[MAX_STUDENTS];
 User users[10];
+Sd sd[MAX_STUDENTS];
 int student_count = 0;
 int user_count = 0;
 int logged_in = 0;
@@ -59,9 +75,6 @@ void sort_by_marks();
 void show_attendance();
 void update_attendance();
 void login();
-void main_menu();
-void teacher_profile();
-void teacher_menu();
 void student_menu();  
 void clear_screen();
 void pause_screen();
@@ -71,6 +84,9 @@ void calculate_total(Student *s);
 void assign_roll_numbers(int year);
 void save_studentdetails();  
 void load_studentdetails();   
+void edit_student();
+void main_menu_admin();
+void main_menu_teacher();
 
 void clear_screen() {
     system("cls");
@@ -150,10 +166,10 @@ void load_students() {
     while (fgets(line, sizeof(line), fp) && student_count < MAX_STUDENTS) {
         Student s;
         char result[20];
-        sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^\n]",
-               s.roll, s.name, &s.theory, &s.practical, &s.viva,
-               &s.attendance, &s.total, &s.grade, result);
-        strcpy(s.result, result);
+sscanf(line, "%[^,],%[^,],%d,%d,%d,%f,%d,%c,%[^\n]",
+       s.roll, s.name, &s.theory, &s.practical, &s.viva,
+       &s.attendance, &s.total, &s.grade, result);
+strcpy(s.result, result);
 
         if (strstr(s.roll, "082BME")) s.year = 1;
         else if (strstr(s.roll, "081BME")) s.year = 2;
@@ -225,13 +241,11 @@ void load_teacher(Teacher *t) {
     FILE *fp = fopen(TEACHER_FILE, "r");
 
     if (fp == NULL) {
-        // default data
         strcpy(t->name, "Bikal Adhikari");
         strcpy(t->subject, "Computer");
         strcpy(t->phone, "0000000000");
-        strcpy(t->gender,"G");
+       strcpy(t->gender,"M"); 
 
-        // save default
         fp = fopen(TEACHER_FILE, "w");
         fprintf(fp, "%s,%s,%s,%s\n",
                 t->gender, t->name,
@@ -367,16 +381,54 @@ void save_students() {
         printf("Error saving data!\n");
         return;
     }
-    fprintf(fp, "Roll,Name,Theory,Practical,Viva,Attendance,Total,Grade,Result\n");
+    fprintf(fp, "Roll,Name,Theory,Practical,Viva,Attendance,Total,Grade,Result,DOB,Address,Gender,Phn_no\n");
     for (int i = 0; i < student_count; i++) {
-        fprintf(fp, "%s,%s,%d,%d,%d,%.2f,%d,%c,%s\n",
+        fprintf(fp, "%s,%s,%d,%d,%d,%.2f,%d,%c,%s,%d-%d-%d,%s,%c,%d\n",
                 students[i].roll, students[i].name,
                 students[i].theory, students[i].practical, students[i].viva,
                 students[i].attendance, students[i].total,
-                students[i].grade, students[i].result);
+                students[i].grade, students[i].result,sd[i].dob.d,sd[i].dob.m,sd[i].dob.y,sd[i].add,sd[i].g,sd[i].ph);
     }
     fclose(fp);
     save_studentdetails();
+}
+void edit_student(){
+
+ clear_screen();
+    char roll[MAX_ROLL];
+    printf("Enter Roll Number to update: ");
+    scanf("%s", roll);
+    getchar();
+
+    int index = -1;
+    for (int i = 0; i < student_count; i++) {
+        if (strcmp(students[i].roll, roll) == 0) {
+            index = i;
+            break;
+        } }
+
+    if (index == -1) {
+        printf("Student not found!\n");
+        return;
+    }
+
+    printf("Enter phone no:");
+    scanf("%d",&sd[index].ph);
+    getchar();
+
+    printf("Enter address:");
+    scanf("%s",sd[index].add);
+    getchar();
+
+    printf("Enter gender(M/F): ");
+    scanf(" %c",&sd[index].g);
+
+    printf("Enter DOB(dd-mm-yyyy):");
+    scanf("%d%d%d",&sd[index].dob.d,&sd[index].dob.m,&sd[index].dob.y);
+
+
+    save_students();
+    printf("Student updated successfully!\n");
 }
 
 void save_users() {
@@ -783,13 +835,14 @@ void student_menu() {
     int ch;
     do {
         clear_screen();
-        print_header("STUDENT PORTAL - VIEW ONLY ACCESS");
+        print_header("STUDENT PORTAL");
         printf("Welcome, %s\n", current_user);
         printf("\n1. View My Details\n");
-        printf("2. View My Attendance\n");
-        printf("3. View My Grade & Result\n");
-        printf("4. View Class Rankings\n");
-        printf("5. Logout\n");
+        printf("2. Edit My Details\n");
+        printf("3. View My Attendance\n");
+        printf("4. View My Grade & Result\n");
+        printf("5. View Class Rankings\n");
+        printf("6. Logout\n");
 
         printf("\nChoice: ");
         scanf("%d", &ch);
@@ -803,7 +856,7 @@ void student_menu() {
             }
         }
 
-        if (student_index == -1 && ch != 5) {
+        if (student_index == -1 && ch != 5 && ch != 6) {
             printf("Student record not found!\n");
             pause_screen();
             continue;
@@ -824,9 +877,17 @@ void student_menu() {
                 printf("Attendance: %.2f%%\n", students[student_index].attendance);
                 printf("Grade: %c\n", students[student_index].grade);
                 printf("Result: %s\n", students[student_index].result);
+                printf("Phone no: %d\n", sd[student_index].ph);
+                printf("Address: %s\n", sd[student_index].add);
+                printf("DOB: %d-%d-%d\n", sd[student_index].dob.d, sd[student_index].dob.m, sd[student_index].dob.y);
+                printf("Gender: %c\n", sd[student_index].g);
+                break;
+                
+            case 2:
+                edit_student();
                 break;
 
-            case 2:
+            case 3:
                 printf("\n========================================\n");
                 printf("YOUR ATTENDANCE\n");
                 printf("========================================\n");
@@ -840,7 +901,7 @@ void student_menu() {
                 }
                 break;
 
-            case 3:
+            case 4:
                 printf("\n========================================\n");
                 printf("YOUR GRADE & RESULT\n");
                 printf("========================================\n");
@@ -858,11 +919,11 @@ void student_menu() {
                 }
                 break;
 
-            case 4:
+            case 5:
                 sort_by_marks();
                 break;
 
-            case 5:
+            case 6:
                 logged_in = 0;
                 printf("Logging out...\n");
                 break;
@@ -871,17 +932,16 @@ void student_menu() {
                 printf("Invalid choice!\n");
         }
 
-        if (ch >= 1 && ch <= 4) {
+        if (ch >= 1 && ch <= 5) {
             pause_screen();
         }
 
-    } while (ch != 5);
-}
+    } while (ch != 6);  
+} 
 
-void login() {
+ void login() {
     clear_screen();
     char username[30], password[30];
-    int role_choice;
 
     print_header("LOGIN");
     printf("Username: ");
@@ -906,23 +966,24 @@ void login() {
     printf("\nInvalid username or password!\n");
     pause_screen();
 }
-
-void main_menu() {
+        
+void main_menu_admin() {
     int ch;
     do {
         clear_screen();
-        print_header("STUDENT RECORD MANAGEMENT SYSTEM");
-        printf("1.    Add Student\n");
-        printf("2.    View All Students\n");
-        printf("3.    Search Student\n");
-        printf("4.    Update Student\n");
-        printf("5.    Delete Student\n");
-        printf("6.    Class Statistics\n");
-        printf("7.    Rankings (Sort by Marks)\n");
-        printf("8.    Attendance Report\n");
-        printf("9.    Update Attendance\n");
-        printf("10.   Logout\n");
-
+        print_header("ADMIN PANEL");
+        
+        printf("1. Add Student\n");
+        printf("2. View All Students\n");
+        printf("3. Search Student\n");
+        printf("4. Update Student\n");
+        printf("5. Delete Student\n");
+        printf("6. Class Statistics\n");
+        printf("7. Rankings (Sort by Marks)\n");
+        printf("8. Attendance Report\n");
+        printf("9. Update Attendance\n");
+        printf("10. Teacher Details\n");
+        printf("11. Logout\n");
         printf("\nChoice: ");
         scanf("%d", &ch);
         getchar();
@@ -956,40 +1017,86 @@ void main_menu() {
                 update_attendance();
                 break;
             case 10:
+                teacher_details();
+                break;
+            case 11:
                 logged_in = 0;
+                printf("Logging out...\n");
                 break;
             default:
                 printf("Invalid choice!\n");
         }
 
-        if (ch >= 1 && ch <= 9) {
+        if (ch >= 1 && ch <= 10) {
             pause_screen();
         }
 
-    } while (ch != 10);
+    } while (ch != 11);
 }
 
-void teacher_menu(){
-    clear_screen();
-    int choice;
-    printf("[1] My Profile\n");
-    printf("[2] Class Details\n");
-    choice= getchar();
-    switch(choice){
-        case 1:
-        teacher_details();
-        break;
-
-        case 2:
-        main_menu();
-    }
+void main_menu_teacher() {
+    int ch;
+    do {
+        clear_screen();
+        print_header("TEACHER PANEL");
         
-    }
+        printf("1. View All Students\n");
+        printf("2. Search Student\n");
+        printf("3. Update Student Marks\n");
+        printf("4. Update Attendance\n");
+        printf("5. Class Statistics\n");
+        printf("6. Rankings (Sort by Marks)\n");
+        printf("7. Attendance Report\n");
+        printf("8. My Profile\n");
+        printf("9. Logout\n");
+        printf("\nChoice: ");
+        scanf("%d", &ch);
+        getchar();
+
+        switch(ch) {
+            case 1:
+                view_all();
+                break;
+            case 2:
+                search_student();
+                break;
+            case 3:
+                update_student();
+                break;
+            case 4:
+                update_attendance();
+                break;
+            case 5:
+                show_statistics();
+                break;
+            case 6:
+                sort_by_marks();
+                break;
+            case 7:
+                show_attendance();
+                break;
+            case 8:
+                teacher_details();
+                break;
+            case 9:
+                logged_in = 0;
+                printf("Logging out...\n");
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+
+        if (ch >= 1 && ch <= 8) {
+            pause_screen();
+        }
+
+    } while (ch != 9);
+}
 
 int main() {
     load_students();
     load_users();
-    load_studentdetails(); 
+    load_studentdetails();
 
     int ch;
     do {
@@ -1006,55 +1113,48 @@ int main() {
             getchar();
 
             if (ch == 1) {
-                    int choice;
-                    clear_screen();
-                    print_header("STUDENT RECORD MANAGEMENT SYSTEM");
-                    printf("[1] Admin\n");
-                    printf("[2] Teacher\n");
-                    printf("[3] Student\n");
-                    printf("Choice: ");
-                    scanf("%d",&choice);
-                    getchar();
-                    login();
-                    if (logged_in) {
-                     
-                        switch (choice){
-                            case 1:
-                            main_menu();
-                            break;
+                int choice;
+                clear_screen();
+                print_header("SELECT ROLE");
+                printf("[1] Admin\n");
+                printf("[2] Teacher\n");
+                printf("[3] Student\n");
+                printf("Choice: ");
+                scanf("%d", &choice);
+                getchar();
 
-                            case 2:
-                            teacher_menu();
-                            break;
+                login();
 
-                            case 3:
+                if (logged_in) {
+                    switch (choice) {
+                        case 1:
+                            main_menu_admin();
+                            break;
+                        case 2:
+                            main_menu_teacher();
+                            break;
+                        case 3:
                             student_menu();
                             break;
-
-                            default:
-                            printf("Invalid role\n");
+                        default:
+                            printf("Invalid role selected!\n");
                             pause_screen();
+                            logged_in = 0;
                     }
-                    
                 }
             }
-        else if(ch==2){
-        break;}
-
-        else{
-        printf("Invalid choice! Please reenter\n");
-        goto reenter;}
+            else if (ch == 2) {
+                break;
+            }
+            else {
+                printf("Invalid choice! Please reenter\n");
+                goto reenter;
+            }
         }
-    }while(1);
+    } while (1);
+
     save_students();
     save_users();
     print_header_w_animation("\nThank you for using the system!\n");
     return 0;
 }
-
-
-
-
-
-
- 
