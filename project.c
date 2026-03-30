@@ -1147,7 +1147,7 @@ int main() {
                 break;
             }
             else {
-                printf("Invalid choice! Please reenter\n");
+                printf("Invalid choice! Please re-enter\n");
                 goto reenter;
             }
         }
