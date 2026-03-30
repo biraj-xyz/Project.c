@@ -26,6 +26,13 @@ typedef struct {
     char role[20];
 }User;
 
+typedef struct {
+    char name[50];
+    char subject[50];
+    char phone[20];
+    char gender[10];
+} Teacher;
+
 Student students[MAX_STUDENTS];
 User users[10];
 int student_count = 0;
@@ -36,6 +43,7 @@ char current_role[20];
 
 const char *STUDENT_FILE = "students.csv";
 const char *USER_FILE = "users.csv";
+const char *TEACHER_FILE= "teacher.csv";
 
 void save_students();
 void load_students();
@@ -52,6 +60,8 @@ void show_attendance();
 void update_attendance();
 void login();
 void main_menu();
+void teacher_profile();
+void teacher_menu();
 void student_menu();  
 void clear_screen();
 void pause_screen();
@@ -211,6 +221,120 @@ void load_users() {
     save_users();
 }
 
+void load_teacher(Teacher *t) {
+    FILE *fp = fopen(TEACHER_FILE, "r");
+
+    if (fp == NULL) {
+        // default data
+        strcpy(t->name, "Bikal Adhikari");
+        strcpy(t->subject, "Computer");
+        strcpy(t->phone, "0000000000");
+        strcpy(t->gender,"G");
+
+        // save default
+        fp = fopen(TEACHER_FILE, "w");
+        fprintf(fp, "%s,%s,%s,%s\n",
+                t->gender, t->name,
+                t->subject, t->phone);
+        fclose(fp);
+        return;
+    }
+
+    fscanf(fp, "%[^,],%[^,],%[^,],%[^\n]",
+           t->gender, t->name,
+           t->subject, t->phone);
+
+    fclose(fp);
+}
+
+void save_teacher(Teacher *t) {
+    FILE *fp = fopen(TEACHER_FILE, "w");
+
+    if (fp == NULL) {
+        printf("Error saving teacher data!\n");
+        return;
+    }
+
+    fprintf(fp, "%s,%s,%s,%s\n",
+            t->gender, t->name,
+            t->subject, t->phone);
+
+    fclose(fp);
+}
+
+void view_teacher(Teacher *t) {
+    print_header("TEACHER DETAILS");
+
+    printf("Name     : %s\n", t->name);
+    printf("Subject  : %s\n", t->subject);
+    printf("Phone    : %s\n", t->phone);
+    printf("Gender : %s\n", t->gender);
+}
+
+void edit_teacher(Teacher *t) {
+    print_header("EDIT TEACHER DETAILS");
+
+    printf("Enter Name: ");
+    fgets(t->name, 50, stdin);
+    t->name[strcspn(t->name, "\n")] = '\0';
+
+    printf("Enter Subject: ");
+    fgets(t->subject, 50, stdin);
+    t->subject[strcspn(t->subject, "\n")] = '\0';
+
+    printf("Enter Phone: ");
+    fgets(t->phone, 20, stdin);
+    t->phone[strcspn(t->phone, "\n")] = '\0';
+
+    printf("Enter Gender: ");
+    fgets(t->gender, 20, stdin);
+    t->gender[strcspn(t->gender, "\n")] = '\0';
+
+
+    save_teacher(t);
+
+    printf("\nDetails updated successfully!\n");
+}
+
+void teacher_details() {
+    Teacher t;
+    load_teacher(&t);
+
+    int ch;
+
+    do {
+        clear_screen();
+        print_header("TEACHER PANEL");
+
+        printf("1. View Personal Details\n");
+        printf("2. Edit Personal Details\n");
+        printf("3. Back\n");
+
+        printf("\nChoice: ");
+        scanf("%d", &ch);
+        getchar();
+
+        switch (ch) {
+            case 1:
+                view_teacher(&t);
+                pause_screen();
+                break;
+
+            case 2:
+                edit_teacher(&t);
+                pause_screen();
+                break;
+
+            case 3:
+                return;
+
+            default:
+                printf("Invalid choice!\n");
+                pause_screen();
+        }
+
+    } while (1);
+}
 void save_studentdetails() {
     
     for (int i = 0; i < student_count; i++) {
@@ -841,6 +965,22 @@ void main_menu() {
     } while (ch != 10);
 }
 
+void teacher_menu(){
+    int choice;
+    printf("[1] My Profile\n");
+    printf("[2] Class Details\n");
+    choice= getchar();
+    switch(choice){
+        case 1:
+        teacher_details();
+        break;
+
+        case 2:
+        main_menu();
+    }
+        
+    }
+
 int main() {
     load_students();
     load_users();
@@ -879,7 +1019,7 @@ int main() {
                             break;
 
                             case 2:
-                            main_menu();
+                            teacher_menu();
                             break;
 
                             case 3:
