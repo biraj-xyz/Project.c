@@ -265,6 +265,7 @@ void save_users() {
 }
 
 void add_student() {
+    clear_screen();
     if (student_count >= MAX_STUDENTS) {
         printf("Maximum students limit reached!\n");
         return;
@@ -415,6 +416,7 @@ void search_student() {
 }
 
 void update_student() {
+    clear_screen();
     char roll[MAX_ROLL];
     printf("Enter Roll Number to update: ");
     scanf("%s", roll);
@@ -457,6 +459,7 @@ void update_student() {
 }
 
 void delete_student() {
+    clear_screen();
     char roll[MAX_ROLL];
     printf("Enter Roll Number to delete: ");
     scanf("%s", roll);
@@ -502,6 +505,7 @@ void delete_student() {
 }
 
 void show_statistics() {
+    clear_screen();
     if (student_count == 0) {
         printf("No students found!\n");
         return;
@@ -560,6 +564,7 @@ void show_statistics() {
 }
 
 void sort_by_marks() {
+    clear_screen();
     if (student_count == 0) {
         printf("No students found!\n");
         return;
@@ -586,6 +591,7 @@ void sort_by_marks() {
     } }
 
 void show_attendance() {
+    clear_screen();
     if (student_count == 0) {
         printf("No students found!\n");
         return;  }
@@ -745,6 +751,7 @@ void student_menu() {
 }
 
 void login() {
+    clear_screen();
     char username[30], password[30];
     int role_choice;
 
@@ -777,16 +784,16 @@ void main_menu() {
     do {
         clear_screen();
         print_header("STUDENT RECORD MANAGEMENT SYSTEM");
-        printf("1. Add Student\n");
-        printf("2. View All Students\n");
-        printf("3. Search Student\n");
-        printf("4. Update Student\n");
-        printf("5. Delete Student\n");
-        printf("6. Class Statistics\n");
-        printf("7. Rankings (Sort by Marks)\n");
-        printf("8. Attendance Report\n");
-        printf("9. Update Attendance\n");
-        printf("10. Logout\n");
+        printf("1.    Add Student\n");
+        printf("2.    View All Students\n");
+        printf("3.    Search Student\n");
+        printf("4.    Update Student\n");
+        printf("5.    Delete Student\n");
+        printf("6.    Class Statistics\n");
+        printf("7.    Rankings (Sort by Marks)\n");
+        printf("8.    Attendance Report\n");
+        printf("9.    Update Attendance\n");
+        printf("10.   Logout\n");
 
         printf("\nChoice: ");
         scanf("%d", &ch);
@@ -845,8 +852,9 @@ int main() {
         print_header_w_animation("STUDENT RECORD MANAGEMENT SYSTEM");
 
         if (!logged_in) {
-            printf("1. Login\n");
-            printf("2. Exit\n");
+            reenter:
+            printf("[1] LOGIN\n");
+            printf("[2] EXIT\n");
             printf("\nChoice: ");
 
             scanf("%d", &ch);
@@ -885,6 +893,12 @@ int main() {
                     
                 }
             }
+        else if(ch==2){
+        break;}
+
+        else{
+        printf("Invalid choice! Please reenter\n");
+        goto reenter;}
         }
     }while(1);
     save_students();
