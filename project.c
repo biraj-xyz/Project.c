@@ -853,19 +853,40 @@ int main() {
             getchar();
 
             if (ch == 1) {
-                login();
-                if (logged_in) {
-                    if (strcmp(current_role, "student") == 0) {
-                        student_menu();  
-                    } else {
-                        main_menu();  
-                    } } }
-            else if (ch == 2) {
-                break;
-            } else {
-                printf("Invalid choice!\n");
-                pause_screen(); }
-        }   } while (1);
+                    int choice;
+                    clear_screen();
+                    print_header("STUDENT RECORD MANAGEMENT SYSTEM");
+                    printf("[1] Admin\n");
+                    printf("[2] Teacher\n");
+                    printf("[3] Student\n");
+                    printf("Choice: ");
+                    scanf("%d",&choice);
+                    getchar();
+                    login();
+                    if (logged_in) {
+                     
+                        switch (choice){
+                            case 1:
+                            main_menu();
+                            break;
+
+                            case 2:
+                            main_menu();
+                            break;
+
+                            case 3:
+                            student_menu();
+                            break;
+
+                            default:
+                            printf("Invalid role\n");
+                            pause_screen();
+                    }
+                    
+                }
+            }
+        }
+    }while(1);
     save_students();
     save_users();
     print_header_w_animation("\nThank you for using the system!\n");
@@ -877,3 +898,4 @@ int main() {
 
 
 
+ 
