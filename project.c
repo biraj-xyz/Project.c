@@ -263,6 +263,7 @@ void save_teacher(Teacher *t) {
 }
 
 void view_teacher(Teacher *t) {
+    clear_screen();
     print_header("TEACHER DETAILS");
 
     printf("Name     : %s\n", t->name);
@@ -272,6 +273,7 @@ void view_teacher(Teacher *t) {
 }
 
 void edit_teacher(Teacher *t) {
+    clear_screen();
     print_header("EDIT TEACHER DETAILS");
 
     printf("Enter Name: ");
@@ -491,6 +493,7 @@ void assign_roll_numbers(int year) {
 }
 
 void view_all() {
+        clear_screen();
     if (student_count == 0) {
         printf("No students found!\n");
         return;
@@ -744,6 +747,7 @@ void show_attendance() {
 }
 
 void update_attendance() {
+    clear_screen();
     char roll[MAX_ROLL];
     printf("Enter Roll Number: ");
     scanf("%s", roll);
@@ -966,6 +970,7 @@ void main_menu() {
 }
 
 void teacher_menu(){
+    clear_screen();
     int choice;
     printf("[1] My Profile\n");
     printf("[2] Class Details\n");
