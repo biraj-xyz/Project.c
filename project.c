@@ -23,7 +23,8 @@ typedef struct {
 typedef struct {
     char username[30];
     char password[30];
-    char role[20];  
+    char role[20];
+}User;
 
 Student students[MAX_STUDENTS];
 User users[10];
