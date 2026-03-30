@@ -24,16 +24,15 @@ typedef struct {
 typedef struct {
     char username[30];
     char password[30];
-    char role[20];  // Added role field to distinguish between admin, teacher, student
-} User;
+    char role[20];  
 
 Student students[MAX_STUDENTS];
 User users[10];
 int student_count = 0;
 int user_count = 0;
 int logged_in = 0;
-char current_user[30];  // Store current logged in username
-char current_role[20];  // Store current user's role
+char current_user[30];  
+char current_role[20];  
 
 const char *STUDENT_FILE = "students.csv";
 const char *USER_FILE = "users.csv";
@@ -53,15 +52,15 @@ void show_attendance();
 void update_attendance();
 void login();
 void main_menu();
-void student_menu();  // New function for student menu
+void student_menu();  
 void clear_screen();
 void pause_screen();
 void print_header(char *title);
 char calculate_grade(int marks);
 void calculate_total(Student *s);
 void assign_roll_numbers(int year);
-void save_student_credentials();  // New function to save student credentials
-void load_student_credentials();   // New function to load student credentials
+void save_studentdetails();  
+void load_studentdetails();   
 
 void clear_screen() {
     system("cls");
@@ -212,11 +211,9 @@ void load_users() {
     save_users();
 }
 
-void save_student_credentials() {
-    // This function will be called after adding a new student
-    // to create their login credentials
+void save_studentdetails() {
+    
     for (int i = 0; i < student_count; i++) {
-        // Check if student already has credentials
         int exists = 0;
         for (int j = 0; j < user_count; j++) {
             if (strcmp(users[j].username, students[i].roll) == 0) {
@@ -224,11 +221,9 @@ void save_student_credentials() {
                 break;
             }
         }
-
-        // If not exists and user_count < 10, add student credentials
         if (!exists && user_count < 10) {
             strcpy(users[user_count].username, students[i].roll);
-            strcpy(users[user_count].password, "student123");  // Default password
+            strcpy(users[user_count].password, "student123"); 
             strcpy(users[user_count].role, "student");
             user_count++;
         }
@@ -236,9 +231,8 @@ void save_student_credentials() {
     save_users();
 }
 
-void load_student_credentials() {
-    // Ensure all students have login credentials
-    save_student_credentials();
+void load_studentdetails() {
+    save_studentdetails();
 }
 
 void save_students() {
@@ -256,9 +250,7 @@ void save_students() {
                 students[i].grade, students[i].result);
     }
     fclose(fp);
-
-    // After saving students, update student credentials
-    save_student_credentials();
+    save_studentdetails();
 }
 
 void save_users() {
@@ -489,7 +481,6 @@ void delete_student() {
     getchar();
 
     if (confirm == 'y' || confirm == 'Y') {
-        // Also remove student's login credentials
         for (int i = 0; i < user_count; i++) {
             if (strcmp(users[i].username, students[index].roll) == 0) {
                 for (int j = i; j < user_count - 1; j++) {
@@ -549,8 +540,7 @@ void show_statistics() {
             case 'F':
                 gf++;
                 break;
-        }
-    }
+        } }
 
     float avg = (float)total_marks / student_count;
     float pass_per = (float)pass / student_count * 100;
@@ -583,9 +573,7 @@ void sort_by_marks() {
             if (sorted[j].total > sorted[i].total) {
                 Student temp = sorted[i];
                 sorted[i] = sorted[j];
-                sorted[j] = temp;
-            }
-        }
+                sorted[j] = temp; }  }
     }
     print_header("RANKINGS (By Total Marks)");
     printf("%-5s %-12s %-20s %-8s %s\n", "Rank", "Roll No", "Name", "Total", "Grade");
@@ -595,15 +583,13 @@ void sort_by_marks() {
         printf("%-5d %-12s %-20s %-8d %c\n",
                i + 1, sorted[i].roll, sorted[i].name,
                sorted[i].total, sorted[i].grade);
-    }
-}
+    } }
 
 void show_attendance() {
     if (student_count == 0) {
         printf("No students found!\n");
-        return;
-    }
-
+        return;  }
+        
     print_header("ATTENDANCE REPORT");
     printf("%-12s %-20s %-10s %s\n", "Roll No", "Name", "Attendance", "Status");
     printf("--------------------------------------------\n");
@@ -659,8 +645,6 @@ void update_attendance() {
         students[index].attendance = 0;
     }
 }
-
-// New function for student menu (view-only access)
 void student_menu() {
     int ch;
     do {
@@ -677,7 +661,6 @@ void student_menu() {
         scanf("%d", &ch);
         getchar();
 
-        // Find the logged-in student's index
         int student_index = -1;
         for (int i = 0; i < student_count; i++) {
             if (strcmp(students[i].roll, current_user) == 0) {
@@ -854,7 +837,7 @@ void main_menu() {
 int main() {
     load_students();
     load_users();
-    load_student_credentials();  // Ensure all students have credentials
+    load_studentdetails(); 
 
     int ch;
     do {
@@ -872,24 +855,17 @@ int main() {
             if (ch == 1) {
                 login();
                 if (logged_in) {
-                    // Redirect based on role
                     if (strcmp(current_role, "student") == 0) {
-                        student_menu();  // Student gets view-only access
+                        student_menu();  
                     } else {
-                        main_menu();     // Admin and teacher get full access
-                    }
-                }
-            }
+                        main_menu();  
+                    } } }
             else if (ch == 2) {
                 break;
             } else {
                 printf("Invalid choice!\n");
-                pause_screen();
-            }
-        }
-
-    } while (1);
-
+                pause_screen(); }
+        }   } while (1);
     save_students();
     save_users();
     print_header_w_animation("\nThank you for using the system!\n");
