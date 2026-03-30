@@ -11,7 +11,7 @@ typedef struct Dob{
      int d;
      int m;
      int y;
- };
+ }dob;
 
 typedef struct
 {
