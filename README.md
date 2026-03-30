@@ -9,4 +9,4 @@ FOR ADMIN-
 
 FOR STUDENT(add student first)-
    username: roll no
-   pw: roll no
+   pw: student123
