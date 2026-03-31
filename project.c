@@ -515,8 +515,6 @@ void add_student() {
     printf("\nStudent added successfully!\n");
     printf("Total: %d/300 | Grade: %c | Result: %s\n", s.total, s.grade, s.result);
     printf("\nStudent login created!\n");
-    printf("Username: %s\n", s.roll);
-    printf("Password: student123\n");
 }
 
 void assign_roll_numbers(int year) {
