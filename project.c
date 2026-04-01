@@ -1126,6 +1126,7 @@ int main() {
 
             if (ch == 1) {
                 int choice;
+                reselect:
                 clear_screen();
                 print_header("SELECT ROLE");
                 printf("[1] Admin\n");
@@ -1134,6 +1135,11 @@ int main() {
                 printf("Choice: ");
                 scanf("%d", &choice);
                 getchar();
+               if (choice <1 || choice >3){
+                   printf("Invalid input please reenter!\n");
+                   pause_screen();
+              goto reselect;
+         }
 
                 login();
 
